@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Planilhas de Campo - Tartarugalzinho</title>
+    
+    <!-- CDNs Oficiais (Serão mantidas em cache pelo navegador) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Estilos Nativos de Fallback (Garante visual mesmo sem conexão/Tailwind) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Scrollbar suave */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Estilos visuais garantidos para a Escala VBM */
+        .vbm-score-1 { background-color: #047857 !important; color: #ffffff !important; border-color: #047857 !important; }
+        .vbm-score-2 { background-color: #f59e0b !important; color: #ffffff !important; border-color: #d97706 !important; }
+        .vbm-score-3 { background-color: #c2410c !important; color: #ffffff !important; border-color: #ea580c !important; }
+        .vbm-score-4 { background-color: #b91c1c !important; color: #ffffff !important; border-color: #dc2626 !important; }
+        .vbm-score-5 { background-color: #6b21a8 !important; color: #ffffff !important; border-color: #7e22ce !important; }
+        .vbm-empty   { background-color: #fef2f2 !important; color: #991b1b !important; border: 1.5px solid #f87171 !important; }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800">
+    <header class="bg-emerald-900 text-white shadow-md sticky top-0 z-30 shrink-0">
+        <div class="max-w-7xl mx-auto px-3 py-2.5 flex flex-col sm:flex-row justify-between items-center gap-2.5">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center gap-2">
+                    <div class="bg-emerald-800 p-2 rounded-xl shadow-inner">
+                        <i class="fa-solid fa-seedling text-emerald-300 text-base"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xs sm:text-sm font-bold tracking-tight leading-tight">Coleta Tartarugalzinho</h1>
+                        <p class="text-[10px] text-emerald-200">Severidade VBM (Campo)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-2">
+                <div class="bg-emerald-950/70 p-1 rounded-xl flex gap-1 border border-emerald-700/50">
+                    <button id="btnExp1" onclick="switchExperiment('sazonal')" class="px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all shadow-sm bg-white text-emerald-950">
+                        Sazonal
+                    </button>
+                    <button id="btnExp2" onclick="switchExperiment('poda')" class="px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all text-emerald-100 hover:text-white">
+                        Poda
+                    </button>
+                </div>
+                <div class="flex gap-1.5 flex-wrap">
+                    <button onclick="saveData()" title="Salvar" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow">
+                        <i class="fa-solid fa-floppy-disk"></i> <span class="hidden xs:inline">Salvar</span>
+                    </button>
+                    <button onclick="exportPDF()" title="Exportar PDF" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow">
+                        <i class="fa-solid fa-file-pdf"></i> <span class="hidden xs:inline">PDF</span>
+                    </button>
+                    <button onclick="exportJPEG()" title="Exportar JPEG" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow">
+                        <i class="fa-solid fa-image"></i> <span class="hidden xs:inline">JPEG</span>
+                    </button>
+                    <button onclick="confirmClearData()" title="Limpar" class="bg-rose-700/90 hover:bg-rose-700 text-white px-2 py-1 rounded-xl text-xs font-semibold flex items-center transition shadow">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-2 sm:px-4 py-3 flex flex-col lg:flex-row gap-4 overflow-hidden">
+        
+        <!-- Left Sidebar: Controls & Legends -->
+        <aside class="w-full lg:w-80 flex flex-col gap-3 shrink-0 overflow-y-auto max-h-[35vh] lg:max-h-none">
+            
+            <!-- Severity Score Selector -->
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-1.5">
+                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-star text-emerald-600"></i> Escala VBM (1 a 5)
+                    </h2>
+                    <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold border border-emerald-200">Toque p/ Inserir</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mb-2">Selecione a nota e toque na planta útil:</p>
+                
+                <div id="severityButtons" class="grid grid-cols-5 gap-1.5 mb-2">
+                    <!-- Populated dynamically via JS -->
+                </div>
+                <button onclick="setSelectedValue('')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-1.5 rounded-xl text-xs font-medium transition border border-slate-300 flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-eraser"></i> Borracha (Limpar Nota)
+                </button>
+            </div>
+
+            <!-- Severity Scale Legend -->
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+                <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-clipboard-list text-emerald-600"></i> Legenda da Escala
+                </h2>
+                <div class="space-y-1 text-[11px] text-slate-600">
+                    <div class="p-1 rounded bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-4 h-4 rounded vbm-score-1 font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                        <span class="truncate">Planta sem sintomas visíveis</span>
+                    </div>
+                    <div class="p-1 rounded bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-4 h-4 rounded vbm-score-2 font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                        <span class="truncate">Planta com clorose das folhas</span>
+                    </div>
+                    <div class="p-1 rounded bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-4 h-4 rounded vbm-score-3 font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
+                        <span class="truncate">Planta com necrose das folhas</span>
+                    </div>
+                    <div class="p-1 rounded bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-4 h-4 rounded vbm-score-4 font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
+                        <span class="truncate">Planta com roseta ou micélios</span>
+                    </div>
+                    <div class="p-1 rounded bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-4 h-4 rounded vbm-score-5 font-bold flex items-center justify-center shrink-0 text-[10px]">5</span>
+                        <span class="truncate">Planta com morte descendente</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Treatments Info -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-book-open text-emerald-600"></i> Tratamentos
+                    </h2>
+                    <div id="legendContainer" class="space-y-1 text-[11px]">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[11px] font-semibold text-emerald-800">Progresso de Avaliação</span>
+                    <span id="progressText" class="text-[11px] font-bold text-emerald-700">0%</span>
+                </div>
+                <div class="w-full bg-emerald-200 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-emerald-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Main Board -->
+        <section id="captureArea" class="flex-1 bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-slate-200 flex flex-col overflow-y-auto">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 mb-3 border-b border-slate-200 gap-2">
+                <div>
+                    <h2 id="experimentTitle" class="text-sm sm:text-base font-bold text-slate-800">AJUSTE SAZONAL TARTARUGALZINHO</h2>
+                    <p class="text-[11px] text-slate-500">As 8 plantas úteis centrais são interativas (notas 1 a 5).</p>
+                </div>
+                <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-xl border border-slate-200 text-[11px] font-medium text-slate-700 shrink-0">
+                    <i class="fa-solid fa-arrow-right text-emerald-600"></i>
+                    <span>SENTIDO DAS LEIRAS</span>
+                </div>
+            </div>
+
+            <div id="blocksContainer" class="space-y-6 pb-6">
+                <!-- Dynamically rendered blocks & plots -->
+            </div>
+
+            <div class="mt-3 pt-3 border-t-2 border-dashed border-slate-300 flex items-center justify-center gap-2 text-slate-400 font-bold tracking-widest text-xs py-2.5 bg-slate-50 rounded-xl">
+                <span>— — — — RAMAL — — — —</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Confirm Modal -->
+    <div id="customModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border border-slate-200 scale-95 transition-transform" id="modalContent">
+            <h3 id="modalTitle" class="text-base font-bold text-slate-800 mb-2">Confirmação</h3>
+            <p id="modalMessage" class="text-xs sm:text-sm text-slate-600 mb-5">Deseja realmente limpar todos os dados?</p>
+            <div class="flex justify-end gap-2.5">
+                <button onclick="closeModal()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancelar</button>
+                <button id="modalConfirmBtn" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-3.5 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Salvo com sucesso!</span>
+    </div>
+
+    <script>
+        const experimentsData = {
+            sazonal: {
+                title: "AJUSTE SAZONAL TARTARUGALZINHO",
+                treatments: {
+                    1: "Tapioqueira sem irrigação",
+                    2: "Jurará sem irrigação",
+                    3: "Tapioqueira irrigada",
+                    4: "Jurará irrigada"
+                },
+                blocks: [
+                    { id: 1, name: "BLOCO 1", plots: [1, 2, 4, 3] },
+                    { id: 2, name: "BLOCO 2", plots: [2, 1, 3, 4] },
+                    { id: 3, name: "BLOCO 3", plots: [2, 1, 3, 4] }
+                ]
+            },
+            poda: {
+                title: "PODA FITOSSANITÁRIA TARTARUGALZINHO",
+                treatments: {
+                    1: "Tapioqueira (sem poda)",
+                    2: "Jurará (sem poda)",
+                    3: "Tapioqueira (com poda)",
+                    4: "Jurará (com poda)"
+                },
+                blocks: [
+                    { id: 2, name: "BLOCO 2", plots: [1, 2, 3, 4] },
+                    { id: 1, name: "BLOCO 1", plots: [2, 3, 4, 1] },
+                    { id: 3, name: "BLOCO 3", plots: [3, 4, 1, 2] }
+                ]
+            }
+        };
+
+        const scaleColors = {
+            '1': 'vbm-score-1',
+            '2': 'vbm-score-2',
+            '3': 'vbm-score-3',
+            '4': 'vbm-score-4',
+            '5': 'vbm-score-5'
+        };
+
+        let currentExperiment = 'sazonal';
+        let selectedValue = '1';
+        let dataStore = {
+            sazonal: {},
+            poda: {}
+        };
+
+        const usefulPlantsMap = {
+            "1_1": 5, "1_2": 4, "2_1": 6, "2_2": 3,
+            "3_1": 7, "3_2": 2, "4_1": 8, "4_2": 1
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            renderApp();
+        });
+
+        function switchExperiment(expKey) {
+            currentExperiment = expKey;
+            const btn1 = document.getElementById('btnExp1');
+            const btn2 = document.getElementById('btnExp2');
+            
+            if (expKey === 'sazonal') {
+                btn1.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all shadow-sm bg-white text-emerald-950";
+                btn2.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all text-emerald-100 hover:text-white";
+            } else {
+                btn2.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all shadow-sm bg-white text-emerald-950";
+                btn1.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all text-emerald-100 hover:text-white";
+            }
+            document.getElementById('experimentTitle').innerText = experimentsData[expKey].title;
+            renderApp();
+        }
+
+        function setSelectedValue(val) {
+            selectedValue = val;
+            updateSeverityButtonsUI();
+        }
+
+        function updateSeverityButtonsUI() {
+            const container = document.getElementById('severityButtons');
+            let html = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                const isActive = selectedValue === String(i);
+                const colorClass = scaleColors[i];
+                const activeStyle = isActive 
+                    ? 'ring-4 ring-slate-800 scale-105 font-extrabold opacity-100 z-10' 
+                    : 'opacity-80 hover:opacity-100';
+
+                html += `
+                    <button onclick="setSelectedValue('${i}')" class="py-2 rounded-xl border font-bold text-xs transition-all flex flex-col items-center justify-center ${colorClass} ${activeStyle}">
+                        <span>${i}</span>
+                    </button>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderLegend() {
+            const container = document.getElementById('legendContainer');
+            const treatments = experimentsData[currentExperiment].treatments;
+            
+            let html = '';
+            for (const [num, desc] of Object.entries(treatments)) {
+                html += `
+                    <div class="flex items-center gap-2 p-1 rounded-lg bg-slate-50 border border-slate-200">
+                        <span class="w-4 h-4 rounded bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">${num}</span>
+                        <span class="text-slate-700 font-medium truncate">${desc}</span>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderApp() {
+            updateSeverityButtonsUI();
+            renderLegend();
+            const exp = experimentsData[currentExperiment];
+            const container = document.getElementById('blocksContainer');
+            
+            let html = '';
+            exp.blocks.forEach(block => {
+                html += `
+                    <div class="bg-slate-50/90 border border-slate-200 rounded-2xl p-3">
+                        <h3 class="text-xs sm:text-sm font-bold text-emerald-900 mb-2.5 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-emerald-600"></i> ${block.name}
+                        </h3>
+                        <div class="overflow-x-auto pb-2">
+                            <div class="flex items-stretch gap-3 min-w-max">
+                `;
+                block.plots.forEach(plotNum => {
+                    html += `
+                        <div class="bg-white border border-slate-200 rounded-xl p-2.5 shadow-xs flex flex-col items-center w-[124px] shrink-0">
+                            <div class="w-full flex justify-between items-center mb-2 px-1">
+                                <span class="text-[9px] font-semibold text-slate-400 uppercase">Parcela</span>
+                                <div class="bg-emerald-800 text-white w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center shadow-xs">
+                                    ${plotNum}
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 w-full bg-slate-100 p-1 rounded-lg border-2 border-slate-300">
+                    `;
+                    for (let row = 0; row < 6; row++) {
+                        for (let col = 0; col < 4; col++) {
+                            const mapKey = `${row}_${col}`;
+                            const plantNumber = usefulPlantsMap[mapKey];
+                            const isUseful = plantNumber !== undefined;
+                            
+                            const cellKey = `${block.id}_${plotNum}_${row}_${col}`;
+                            const val = (dataStore[currentExperiment] && dataStore[currentExperiment][cellKey]) || '';
+                            const hasVal = val !== '';
+                            
+                            if (isUseful) {
+                                let bgStyle = hasVal 
+                                    ? `${scaleColors[val] || 'vbm-score-1'} shadow-xs` 
+                                    : 'vbm-empty';
+                                
+                                html += `
+                                    <button onclick="handleCellClick('${block.id}', '${plotNum}', '${row}', '${col}', true)" 
+                                        title="Planta Útil #${plantNumber} (Nota 1-5)"
+                                        class="h-9 rounded font-bold text-xs transition flex flex-col items-center justify-center border select-none relative ${bgStyle}">
+                                        <span class="absolute top-0.5 left-0.5 text-[5px] opacity-75 font-normal">p${plantNumber}</span>
+                                        <span class="mt-1">${val}</span>
+                                    </button>
+                                `;
+                            } else {
+                                html += `
+                                    <div class="h-9 rounded bg-slate-200/90 border border-slate-300 flex items-center justify-center text-[7px] text-slate-400 select-none">
+                                        ·
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            updateProgress();
+        }
+
+        function handleCellClick(blockId, plotNum, row, col, isUseful) {
+            if (!isUseful) return;
+            const cellKey = `${blockId}_${plotNum}_${row}_${col}`;
+            
+            if (!dataStore[currentExperiment]) {
+                dataStore[currentExperiment] = {};
+            }
+            if (selectedValue === '') {
+                delete dataStore[currentExperiment][cellKey];
+            } else {
+                dataStore[currentExperiment][cellKey] = selectedValue;
+            }
+            renderApp();
+            autoSaveToLocalStorage();
+        }
+
+        function updateProgress() {
+            const exp = experimentsData[currentExperiment];
+            let totalUsefulCells = 0;
+            let filledCells = 0;
+            exp.blocks.forEach(block => {
+                block.plots.forEach(plotNum => {
+                    totalUsefulCells += 8;
+                    for (const mapKey in usefulPlantsMap) {
+                        const [row, col] = mapKey.split('_');
+                        const cellKey = `${block.id}_${plotNum}_${row}_${col}`;
+                        if (dataStore[currentExperiment] && dataStore[currentExperiment][cellKey]) {
+                            filledCells++;
+                        }
+                    }
+                });
+            });
+            const percent = totalUsefulCells > 0 ? Math.round((filledCells / totalUsefulCells) * 100) : 0;
+            document.getElementById('progressText').innerText = `${percent}% (${filledCells}/${totalUsefulCells})`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+        }
+
+        function autoSaveToLocalStorage() {
+            try {
+                localStorage.setItem('tartarugalzinho_field_data_vbm_v8', JSON.stringify(dataStore));
+            } catch (e) {
+                console.error("Storage error", e);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('tartarugalzinho_field_data_vbm_v8');
+                if (saved) {
+                    dataStore = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error("Load error", e);
+            }
+        }
+
+        function saveData() {
+            autoSaveToLocalStorage();
+            showToast("Notas salvas com sucesso no dispositivo!", "success");
+        }
+
+        function confirmClearData() {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').innerText = "Limpar Avaliações Atuais";
+            document.getElementById('modalMessage').innerText = `Deseja realmente limpar todas as notas do experimento "${experimentsData[currentExperiment].title}"?`;
+            
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            confirmBtn.onclick = function() {
+                dataStore[currentExperiment] = {};
+                autoSaveToLocalStorage();
+                renderApp();
+                closeModal();
+                showToast("Dados limpos com sucesso.", "error");
+            };
+            modal.classList.remove('hidden');
+        }
+
+        function exportPDF() {
+            if (!window.jspdf) {
+                alert("Recurso de PDF indisponível offline sem carregamento prévio.");
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const expName = experimentsData[currentExperiment].title;
+            const expData = dataStore[currentExperiment] || {};
+
+            doc.setFillColor(6, 78, 59);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text("COLETA DE CAMPO - TARTARUGALZINHO", 14, 12);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Experimento: ${expName}`, 14, 19);
+
+            let yPos = 35;
+            doc.setTextColor(30, 41, 59);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.text("Registros de Severidade VBM por Bloco e Parcela:", 14, yPos);
+            yPos += 8;
+
+            let tableData = [];
+            const exp = experimentsData[currentExperiment];
+            
+            exp.blocks.forEach(block => {
+                block.plots.forEach(plotNum => {
+                    for (const mapKey in usefulPlantsMap) {
+                        const plantNum = usefulPlantsMap[mapKey];
+                        const [row, col] = mapKey.split('_');
+                        const cellKey = `${block.id}_${plotNum}_${row}_${col}`;
+                        const val = expData[cellKey];
+                        if (val) {
+                            tableData.push([
+                                block.name,
+                                `Parcela ${plotNum}`,
+                                `Planta Útil #${plantNum} (L:${parseInt(row)+1}, C:${parseInt(col)+1})`,
+                                `Nota ${val}`
+                            ]);
+                        }
+                    }
+                });
+            });
+
+            if (tableData.length === 0) {
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(10);
+                doc.text("Nenhuma planta avaliada preenchida até o momento.", 14, yPos);
+            } else {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.setFillColor(241, 245, 249);
+                doc.rect(14, yPos, 182, 8, 'F');
+                doc.text("Bloco", 18, yPos + 6);
+                doc.text("Parcela", 50, yPos + 6);
+                doc.text("Planta Útil", 90, yPos + 6);
+                doc.text("Nota VBM", 160, yPos + 6);
+                yPos += 8;
+
+                doc.setFont('helvetica', 'normal');
+                tableData.forEach((row, idx) => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    if (idx % 2 === 1) {
+                        doc.setFillColor(248, 250, 252);
+                        doc.rect(14, yPos, 182, 7, 'F');
+                    }
+                    doc.text(row[0], 18, yPos + 5);
+                    doc.text(row[1], 50, yPos + 5);
+                    doc.text(row[2], 90, yPos + 5);
+                    doc.text(row[3], 160, yPos + 5);
+                    yPos += 7;
+                });
+            }
+
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Relatório gerado pelo Aplicativo de Planilhas de Campo - Tartarugalzinho", 14, 285);
+
+            doc.save(`Relatorio_${currentExperiment}_Tartarugalzinho.pdf`);
+            showToast("Relatório PDF exportado com sucesso!", "success");
+        }
+
+        function exportJPEG() {
+            const captureElement = document.getElementById('captureArea');
+            if (!captureElement || !window.html2canvas) {
+                alert("Exportação de imagem indisponível offline sem carregamento prévio.");
+                return;
+            }
+            
+            showToast("Gerando imagem JPEG...", "success");
+            html2canvas(captureElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Planilha_${currentExperiment}_Tartarugalzinho.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.92);
+                link.click();
+                showToast("Imagem JPEG exportada com sucesso!", "success");
+            }).catch(err => {
+                console.error("JPEG export error:", err);
+                showToast("Erro ao exportar JPEG.", "error");
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMsg');
+            const iconEl = document.getElementById('toastIcon');
+            
+            msgEl.innerText = message;
+            if (type === 'success') {
+                iconEl.className = "fa-solid fa-circle-check text-emerald-400";
+            } else {
+                iconEl.className = "fa-solid fa-triangle-exclamation text-rose-400";
+            }
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
