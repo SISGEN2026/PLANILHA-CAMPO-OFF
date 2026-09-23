@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- Estilos Nativos de Fallback (Garante visual mesmo sem conexão/Tailwind) -->
+    <!-- Estilos Nativos de Fallback e Scrollbar Customizada -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -25,10 +25,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Scrollbar suave */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #e2e8f0; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        /* Scrollbar elegante para a área rolável */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* Estilos visuais garantidos para a Escala VBM */
         .vbm-score-1 { background-color: #047857 !important; color: #ffffff !important; border-color: #047857 !important; }
@@ -39,13 +40,15 @@
         .vbm-empty   { background-color: #fef2f2 !important; color: #991b1b !important; border: 1.5px solid #f87171 !important; }
     </style>
 </head>
-<body class="h-full flex flex-col text-slate-800 bg-slate-100">
-    <header class="bg-emerald-900 text-white shadow-md sticky top-0 z-30 shrink-0">
+<body class="h-screen w-screen overflow-hidden flex flex-col text-slate-800 bg-slate-100">
+
+    <!-- Top Header (Fixo permanentemente no topo, shrink-0) -->
+    <header class="bg-emerald-900 text-white shadow-md shrink-0 z-30">
         <div class="max-w-7xl mx-auto px-3 py-2.5 flex flex-col sm:flex-row justify-between items-center gap-2.5">
             <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                <div class="flex items-center gap-2">
-                    <div class="bg-emerald-800 p-2 rounded-xl shadow-inner">
-                        <i class="fa-solid fa-seedling text-emerald-300 text-base"></i>
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-emerald-800 p-2 rounded-xl shadow-inner flex items-center justify-center">
+                        <i class="fa-solid fa-seedling text-emerald-300 text-xl sm:text-2xl"></i>
                     </div>
                     <div>
                         <h1 class="text-xs sm:text-sm font-bold tracking-tight leading-tight">Coleta Tartarugalzinho</h1>
@@ -55,143 +58,144 @@
             </div>
             <div class="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-2">
                 <div class="bg-emerald-950/70 p-1 rounded-xl flex gap-1 border border-emerald-700/50">
-                    <button id="btnExp1" onclick="switchExperiment('sazonal')" class="px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all shadow-sm bg-white text-emerald-950">
-                        Sazonal
+                    <button id="btnExp1" onclick="switchExperiment('sazonal')" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-sm bg-white text-emerald-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-sun text-amber-500 text-sm"></i>
+                        <span>Sazonal</span>
                     </button>
-                    <button id="btnExp2" onclick="switchExperiment('poda')" class="px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all text-emerald-100 hover:text-white">
-                        Poda
+                    <button id="btnExp2" onclick="switchExperiment('poda')" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-all text-emerald-100 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-scissors text-emerald-300 text-sm"></i>
+                        <span>Poda</span>
                     </button>
                 </div>
                 <div class="flex gap-1.5 flex-wrap">
-                    <button onclick="saveData()" title="Salvar" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow">
-                        <i class="fa-solid fa-floppy-disk"></i> <span class="hidden xs:inline">Salvar</span>
+                    <button onclick="saveData()" title="Salvar" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                        <i class="fa-solid fa-floppy-disk text-base sm:text-lg"></i> <span class="hidden xs:inline">Salvar</span>
                     </button>
-                    <button onclick="exportPDF()" title="Exportar PDF" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow">
-                        <i class="fa-solid fa-file-pdf"></i> <span class="hidden xs:inline">PDF</span>
+                    <button onclick="exportPDF()" title="Exportar PDF" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                        <i class="fa-solid fa-file-pdf text-base sm:text-lg"></i> <span class="hidden xs:inline">PDF</span>
                     </button>
-                    <button onclick="exportJPEG()" title="Exportar JPEG" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow">
-                        <i class="fa-solid fa-image"></i> <span class="hidden xs:inline">JPEG</span>
+                    <button onclick="exportJPEG()" title="Exportar JPEG" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                        <i class="fa-solid fa-image text-base sm:text-lg"></i> <span class="hidden xs:inline">JPEG</span>
                     </button>
-                    <button onclick="confirmClearData()" title="Limpar" class="bg-rose-700/90 hover:bg-rose-700 text-white px-2 py-1 rounded-xl text-xs font-semibold flex items-center transition shadow">
-                        <i class="fa-solid fa-trash-can"></i>
+                    <button onclick="confirmClearData()" title="Limpar" class="bg-rose-700/90 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center transition shadow">
+                        <i class="fa-solid fa-trash-can text-base sm:text-lg"></i>
                     </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Sticky Severity Score Selector Panel (Fixa no topo durante a rolagem) -->
-    <div class="sticky top-[51px] z-20 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-md transition-all">
-        <div class="max-w-7xl mx-auto px-3 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div class="flex items-center justify-between w-full sm:w-auto gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold">
-                        <i class="fa-solid fa-star text-emerald-600"></i>
-                    </span>
-                    <div>
-                        <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                            Escala VBM (1 a 5)
-                        </h2>
-                        <p class="text-[10px] text-slate-500 hidden sm:block">Selecione a nota e toque na planta útil desejada</p>
-                    </div>
+    <!-- Escala VBM Panel (Fixo permanentemente abaixo do Header, shrink-0) -->
+    <div class="bg-white border-b border-slate-200/90 shadow-sm shrink-0 py-4 sm:py-5 px-3 sm:px-6 z-20">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-start gap-3 sm:gap-6">
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="p-2 bg-emerald-100 text-emerald-800 rounded-xl text-sm font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-star text-emerald-600"></i>
+                </span>
+                <div>
+                    <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">
+                        Escala VBM (1 a 5)
+                    </h2>
+                    <p class="text-[10px] text-slate-500 hidden md:block">Toque na nota e depois na planta útil correspondente</p>
                 </div>
-                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold border border-emerald-200">Fixa</span>
             </div>
             
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end overflow-x-auto pb-0.5">
+            <div class="flex items-center gap-2.5 flex-wrap w-full sm:w-auto justify-start">
                 <div id="severityButtons" class="flex gap-1.5 items-center">
                     <!-- Populated dynamically via JS -->
                 </div>
-                <div class="h-6 w-px bg-slate-300 mx-1"></div>
-                <button onclick="setSelectedValue('')" title="Borracha (Limpar Nota)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition border border-slate-300 flex items-center gap-1 shrink-0">
-                    <i class="fa-solid fa-eraser text-slate-500"></i> <span class="text-[11px]">Borracha</span>
+                <div class="h-6 w-px bg-slate-300 mx-1 hidden sm:block"></div>
+                <button onclick="setSelectedValue('')" title="Borracha (Limpar Nota)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold transition border border-slate-300 flex items-center gap-1.5 shrink-0 shadow-xs">
+                    <i class="fa-solid fa-eraser text-slate-500 text-sm"></i> <span class="text-[11px] font-bold">Borracha</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto px-2 sm:px-4 py-4 flex flex-col gap-4">
-        
-        <!-- Main Board / Capture Area (Rola conjuntamente com as informações) -->
-        <section id="captureArea" class="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+    <!-- Área de Conteúdo Única Rolável (Rola blocos, parcelas e legendas livremente) -->
+    <main class="flex-1 overflow-y-auto w-full">
+        <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4">
             
-            <!-- Title & Direction Header -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-slate-200 gap-2">
-                <div>
-                    <h2 id="experimentTitle" class="text-sm sm:text-base font-bold text-slate-800">AJUSTE SAZONAL TARTARUGALZINHO</h2>
-                    <p class="text-[11px] text-slate-500">As 8 plantas úteis centrais são interativas (notas 1 a 5).</p>
-                </div>
-                <div class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 text-[11px] font-medium text-slate-700 shrink-0">
-                    <i class="fa-solid fa-arrow-right text-emerald-600"></i>
-                    <span>SENTIDO DAS LEIRAS</span>
-                </div>
-            </div>
-
-            <!-- Information Grid (Avança/Rola junto com as parcelas) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <!-- Progress Card -->
-                <div class="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-3 flex flex-col justify-between">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-chart-line text-emerald-600"></i> Progresso de Avaliação
-                        </span>
-                        <span id="progressText" class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">0%</span>
+            <section id="captureArea" class="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+                
+                <!-- Title & Direction Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-slate-200 gap-2">
+                    <div>
+                        <h2 id="experimentTitle" class="text-sm sm:text-base font-bold text-slate-800">AJUSTE SAZONAL TARTARUGALZINHO</h2>
+                        <p class="text-[11px] text-slate-500">As 8 plantas úteis centrais são interativas (notas 1 a 5).</p>
                     </div>
-                    <div class="w-full bg-emerald-200/80 rounded-full h-2.5 overflow-hidden mb-1">
-                        <div id="progressBar" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                    <p class="text-[10px] text-emerald-700/80 text-right">Acompanhamento contínuo da coleta</p>
-                </div>
-
-                <!-- Severity Scale Legend Card -->
-                <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
-                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-clipboard-list text-emerald-600"></i> Legenda da Escala
-                    </h2>
-                    <div class="space-y-1 text-[11px] text-slate-600">
-                        <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
-                            <span class="w-4 h-4 rounded vbm-score-1 font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
-                            <span class="truncate">Planta sem sintomas visíveis</span>
-                        </div>
-                        <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
-                            <span class="w-4 h-4 rounded vbm-score-2 font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
-                            <span class="truncate">Planta com clorose das folhas</span>
-                        </div>
-                        <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
-                            <span class="w-4 h-4 rounded vbm-score-3 font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
-                            <span class="truncate">Planta com necrose das folhas</span>
-                        </div>
-                        <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
-                            <span class="w-4 h-4 rounded vbm-score-4 font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
-                            <span class="truncate">Planta com roseta ou micélios</span>
-                        </div>
-                        <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
-                            <span class="w-4 h-4 rounded vbm-score-5 font-bold flex items-center justify-center shrink-0 text-[10px]">5</span>
-                            <span class="truncate">Planta com morte descendente</span>
-                        </div>
+                    <div class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 text-[11px] font-medium text-slate-700 shrink-0">
+                        <i class="fa-solid fa-arrow-right text-emerald-600"></i>
+                        <span>SENTIDO DAS LEIRAS</span>
                     </div>
                 </div>
 
-                <!-- Treatments Info Card -->
-                <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
-                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-book-open text-emerald-600"></i> Tratamentos
-                    </h2>
-                    <div id="legendContainer" class="space-y-1 text-[11px]">
-                        <!-- Populated via JS -->
+                <!-- Grid de Informações Acompanhantes (Avançam com os blocos) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <!-- Progress Card -->
+                    <div class="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-3 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-line text-emerald-600"></i> Progresso de Avaliação
+                            </span>
+                            <span id="progressText" class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">0%</span>
+                        </div>
+                        <div class="w-full bg-emerald-200/80 rounded-full h-2.5 overflow-hidden mb-1">
+                            <div id="progressBar" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-emerald-700/80 text-right">Acompanhamento contínuo da coleta</p>
+                    </div>
+
+                    <!-- Severity Scale Legend Card -->
+                    <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
+                        <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-list text-emerald-600"></i> Legenda da Escala
+                        </h2>
+                        <div class="space-y-1 text-[11px] text-slate-600">
+                            <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded vbm-score-1 font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                                <span class="truncate">Planta sem sintomas visíveis</span>
+                            </div>
+                            <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded vbm-score-2 font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                                <span class="truncate">Planta com clorose das folhas</span>
+                            </div>
+                            <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded vbm-score-3 font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
+                                <span class="truncate">Planta com necrose das folhas</span>
+                            </div>
+                            <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded vbm-score-4 font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
+                                <span class="truncate">Planta com roseta ou micélios</span>
+                            </div>
+                            <div class="p-1 rounded bg-white border border-slate-200 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded vbm-score-5 font-bold flex items-center justify-center shrink-0 text-[10px]">5</span>
+                                <span class="truncate">Planta com morte descendente</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Treatments Info Card -->
+                    <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
+                        <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-book-open text-emerald-600"></i> Tratamentos
+                        </h2>
+                        <div id="legendContainer" class="space-y-1 text-[11px]">
+                            <!-- Populated via JS -->
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Blocks and Plot Matrices -->
-            <div id="blocksContainer" class="space-y-6 pt-2">
-                <!-- Dynamically rendered blocks & plots -->
-            </div>
+                <!-- Blocks and Plot Matrices -->
+                <div id="blocksContainer" class="space-y-6 pt-2">
+                    <!-- Dynamically rendered blocks & plots -->
+                </div>
 
-            <div class="mt-3 pt-3 border-t-2 border-dashed border-slate-300 flex items-center justify-center gap-2 text-slate-400 font-bold tracking-widest text-xs py-2.5 bg-slate-50 rounded-xl">
-                <span>— — — — RAMAL — — — —</span>
-            </div>
-        </section>
+                <div class="mt-3 pt-3 border-t-2 border-dashed border-slate-300 flex items-center justify-center gap-2 text-slate-400 font-bold tracking-widest text-xs py-2.5 bg-slate-50 rounded-xl">
+                    <span>— — — — RAMAL — — — —</span>
+                </div>
+            </section>
+        </div>
     </main>
 
     <!-- Confirm Modal -->
@@ -275,11 +279,11 @@
             const btn2 = document.getElementById('btnExp2');
             
             if (expKey === 'sazonal') {
-                btn1.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all shadow-sm bg-white text-emerald-950";
-                btn2.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all text-emerald-100 hover:text-white";
+                btn1.className = "px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-sm bg-white text-emerald-950 flex items-center gap-1.5";
+                btn2.className = "px-3 py-1.5 text-xs font-semibold rounded-xl transition-all text-emerald-100 hover:text-white flex items-center gap-1.5";
             } else {
-                btn2.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all shadow-sm bg-white text-emerald-950";
-                btn1.className = "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all text-emerald-100 hover:text-white";
+                btn2.className = "px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-sm bg-white text-emerald-950 flex items-center gap-1.5";
+                btn1.className = "px-3 py-1.5 text-xs font-semibold rounded-xl transition-all text-emerald-100 hover:text-white flex items-center gap-1.5";
             }
             document.getElementById('experimentTitle').innerText = experimentsData[expKey].title;
             renderApp();
@@ -302,7 +306,7 @@
                     : 'opacity-80 hover:opacity-100 shadow-xs';
 
                 html += `
-                    <button onclick="setSelectedValue('${i}')" class="w-9 h-8 sm:w-10 sm:h-9 rounded-xl border font-extrabold text-xs transition-all flex items-center justify-center shrink-0 ${colorClass} ${activeStyle}">
+                    <button onclick="setSelectedValue('${i}')" class="w-10 h-9 sm:w-11 sm:h-10 rounded-xl border font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center shrink-0 ${colorClass} ${activeStyle}">
                         <span>${i}</span>
                     </button>
                 `;
