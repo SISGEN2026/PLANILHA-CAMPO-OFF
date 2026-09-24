@@ -375,14 +375,14 @@
                                 html += `
                                     <button onclick="handleCellClick('${block.id}', '${plotNum}', '${row}', '${col}', true)" 
                                         title="Planta Útil #${plantNumber} (Nota 1-5)"
-                                        class="h-9 rounded font-bold text-xs transition flex flex-col items-center justify-center border select-none relative ${bgStyle}">
+                                        class="h-6 rounded font-bold text-xs transition flex flex-col items-center justify-center border select-none relative ${bgStyle}">
                                         <span class="absolute top-0.5 left-0.5 text-[5px] opacity-75 font-normal">p${plantNumber}</span>
                                         <span class="mt-1">${val}</span>
                                     </button>
                                 `;
                             } else {
                                 html += `
-                                    <div class="h-9 rounded bg-slate-200/90 border border-slate-300 flex items-center justify-center text-[7px] text-slate-400 select-none">
+                                    <div class="h-6 rounded bg-slate-200/90 border border-slate-300 flex items-center justify-center text-[7px] text-slate-400 select-none">
                                         ·
                                     </div>
                                 `;
