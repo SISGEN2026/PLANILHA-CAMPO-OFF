@@ -564,9 +564,11 @@
             }
 
             doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.text("Relatório gerado pelo Aplicativo de Planilhas de Campo - Tartarugalzinho", 14, 285);
-
+                        // --- INSERÇÃO DA DATA AQUI ---
+            const dataEmissao = new Date().toLocaleDateString('pt-BR');
+            doc.text(`Relatório gerado pelo Aplicativo de Planilhas de Campo, no município de Tartarugalzinho-AP, em ${dataEmissao}.`, 14, 285);
+            // -----------------------------
+            
             doc.save(`Relatorio_${currentExperiment}_Tartarugalzinho.pdf`);
             showToast("Relatório PDF exportado com sucesso!", "success");
         }
