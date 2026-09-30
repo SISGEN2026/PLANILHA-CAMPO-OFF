@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v1_cache';
+const CACHE_NAME = 'v2_cache'; // Mudamos de v1 para v2
 const ASSETS = [
   'index.html',
   'manifest.json',
