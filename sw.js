@@ -1,8 +1,7 @@
 const CACHE_NAME = 'v1_cache';
 const ASSETS = [
   'index.html',
-  'style.css',
-  'script.js',
+  'manifest.json',
   'icon.png'
 ];
 
