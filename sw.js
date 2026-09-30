@@ -1,12 +1,11 @@
-const CACHE_NAME = 'v5_cache'; // Mudamos para v5 para forçar a atualização limpa
+const CACHE_NAME = 'v6_cache';
 const ASSETS = [
   'index.html',
   'manifest.json',
-  'icon.png',
-  'https://cdn.tailwindcss.com', // Link do CDN corrigido aqui!
-  'https://cloudflare.com', // Adicionado o link dos ícones que faltava
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+  'https://tailwindcss.com',
+  'https://cloudflare.com',
+  'https://cloudflare.com',
+  'https://cloudflare.com'
 ];
 
 self.addEventListener('install', (e) => {
@@ -24,4 +23,5 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
 
