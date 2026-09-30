@@ -598,10 +598,6 @@
             });
         }
 
-        function closeModal() {
-            document.getElementById('customModal').classList.add('hidden');
-        }
-
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toastMsg');
@@ -617,12 +613,17 @@
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3500);
+        } // <--- ESSA CHAVE ESTAVA FALTANDO PARA FECHAR O TOAST!
 
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-          .then(function() { console.log('Registrado!'); })
-          .catch(function(err) { console.error('Erro:', err); });
-  }
-</script>
+        // REGISTRO CORRETO E ISOLADO DO SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function() { console.log('Service Worker Registrado!'); })
+                    .catch(function(err) { console.error('Erro ao registrar:', err); });
+            });
+        }
+    </script>
 </body>
 </html>
+
