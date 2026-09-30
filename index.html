@@ -473,14 +473,15 @@
             
             const confirmBtn = document.getElementById('modalConfirmBtn');
             confirmBtn.onclick = function() {
-                dataStore[currentExperiment] = {};
-                autoSaveToLocalStorage();
-                renderApp();
-                closeModal();
+                dataStore[currentExperiment] = {}; // Limpa os dados na memória
+                autoSaveToLocalStorage();          // Salva a limpeza no aparelho
+                renderApp();                       // Atualiza os blocos na tela
+                closeModal();                      // <--- ADICIONE ESTA LINHA AQUI PARA O BOX SUMIR!
                 showToast("Dados limpos com sucesso.", "error");
             };
             modal.classList.remove('hidden');
         }
+
 
         function exportPDF() {
             if (!window.jspdf) {
