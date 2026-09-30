@@ -466,7 +466,7 @@
             showToast("Notas salvas com sucesso no dispositivo!", "success");
         }
 
-        function confirmClearData() {
+                function confirmClearData() {
             const modal = document.getElementById('customModal');
             document.getElementById('modalTitle').innerText = "Limpar Avaliações Atuais";
             document.getElementById('modalMessage').innerText = `Deseja realmente limpar todas as notas do experimento "${experimentsData[currentExperiment].title}"?`;
@@ -476,12 +476,16 @@
                 dataStore[currentExperiment] = {}; // Limpa os dados na memória
                 autoSaveToLocalStorage();          // Salva a limpeza no aparelho
                 renderApp();                       // Atualiza os blocos na tela
-                closeModal();                      // <--- ADICIONE ESTA LINHA AQUI PARA O BOX SUMIR!
+                closeModal();                      // Fecha a janela imediatamente
                 showToast("Dados limpos com sucesso.", "error");
             };
             modal.classList.remove('hidden');
         }
 
+        // ADICIONADA A FUNÇÃO QUE RECOLOCA A CLASSE HIDDEN PARA SUMIR COM O BOX
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
 
         function exportPDF() {
             if (!window.jspdf) {
@@ -492,7 +496,6 @@
             const doc = new jsPDF('p', 'mm', 'a4');
             const expName = experimentsData[currentExperiment].title;
             const expData = dataStore[currentExperiment] || {};
-
             doc.setFillColor(6, 78, 59);
             doc.rect(0, 0, 210, 25, 'F');
             doc.setTextColor(255, 255, 255);
@@ -502,14 +505,12 @@
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
             doc.text(`Experimento: ${expName}`, 14, 19);
-
             let yPos = 35;
             doc.setTextColor(30, 41, 59);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
             doc.text("Registros de Severidade VBM por Bloco e Parcela:", 14, yPos);
             yPos += 8;
-
             let tableData = [];
             const exp = experimentsData[currentExperiment];
             
@@ -531,7 +532,6 @@
                     }
                 });
             });
-
             if (tableData.length === 0) {
                 doc.setFont('helvetica', 'italic');
                 doc.setFontSize(10);
@@ -546,7 +546,6 @@
                 doc.text("Planta Útil", 90, yPos + 6);
                 doc.text("Nota VBM", 160, yPos + 6);
                 yPos += 8;
-
                 doc.setFont('helvetica', 'normal');
                 tableData.forEach((row, idx) => {
                     if (yPos > 270) {
@@ -564,12 +563,9 @@
                     yPos += 7;
                 });
             }
-
             doc.setFontSize(8);
-                        // --- INSERÇÃO DA DATA AQUI ---
             const dataEmissao = new Date().toLocaleDateString('pt-BR');
             doc.text(`Relatório gerado pelo Aplicativo de Planilhas de Campo, no município de Tartarugalzinho-AP, em ${dataEmissao}.`, 14, 285);
-            // -----------------------------
             
             doc.save(`Relatorio_${currentExperiment}_Tartarugalzinho.pdf`);
             showToast("Relatório PDF exportado com sucesso!", "success");
@@ -614,9 +610,8 @@
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3500);
-        } // <--- ESSA CHAVE ESTAVA FALTANDO PARA FECHAR O TOAST!
+        }
 
-        // REGISTRO CORRETO E ISOLADO DO SERVICE WORKER
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('sw.js')
@@ -627,4 +622,3 @@
     </script>
 </body>
 </html>
-
