@@ -58,16 +58,19 @@
                 </div>
             </div>
             <div class="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-2">
-                <div class="bg-emerald-950/70 p-1 rounded-xl flex gap-1 border border-emerald-700/50">
-                    <button id="btnExp1" onclick="switchExperiment('sazonal')" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-sm bg-white text-emerald-950 flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-sun text-amber-500 text-sm"></i>
-                        <span>Sazonal</span>
-                    </button>
-                    <button id="btnExp2" onclick="switchExperiment('poda')" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-all text-emerald-100 hover:text-white flex items-center gap-1.5">
-                        <i class="fa-solid fa-scissors text-emerald-300 text-sm"></i>
-                        <span>Poda</span>
-                    </button>
-                </div>
+            <div class="bg-emerald-950/70 p-1 rounded-xl flex gap-1 border border-emerald-700/50">
+                <!-- Botão Poda em primeiro -->
+                <button id="btnExp2" onclick="switchExperiment('poda')" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-all text-emerald-100 hover:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-scissors text-emerald-300 text-sm"></i>
+                <span>Poda</span>
+                </button>
+
+            <!-- Botão Sazonal em segundo -->
+                <button id="btnExp1" onclick="switchExperiment('sazonal')" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-sm bg-white text-emerald-950 flex items-center gap-1.5">
+                <i class="fa-solid fa-cloud-sun text-amber-500 text-sm"></i>
+                <span>Sazonal</span>
+    </button>
+</div>
                 <div class="flex gap-1.5 flex-wrap">
                     <button onclick="saveData()" title="Salvar" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">
                         <i class="fa-solid fa-floppy-disk text-base sm:text-lg"></i> <span class="hidden xs:inline">Salvar</span>
